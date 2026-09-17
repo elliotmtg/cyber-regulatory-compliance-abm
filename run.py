@@ -53,9 +53,23 @@ def run_simulation(steps=30, num_regulators=3, num_producers=4, num_users=10, in
     print(f"\nSimulation finished successfully!")
     print(f"Results stored in absolute path: {os.path.abspath(output_dir)}")
     
-    # Print summary statistics
-    print("\n--- Model Summary Statistics ---")
-    print(model_data.describe())
+    # Print summary statistics split by Phase
+    print("\n" + "="*50)
+    print("--- MODEL SUMMARY STATISTICS BY PHASE ---")
+    print("="*50)
+    
+    for phase_val in [1, 2]:
+        phase_subset = model_data[model_data["Phase"] == phase_val]
+        print(f"\n--- Phase {phase_val} (Steps: {len(phase_subset)}) ---")
+        if not phase_subset.empty:
+            print(phase_subset[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure"]].describe())
+        else:
+            print("No steps recorded in this phase.")
+            
+    print("\n" + "="*50)
+    print("--- OVERALL MODEL SUMMARY STATISTICS ---")
+    print("="*50)
+    print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure"]].describe())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation.")
