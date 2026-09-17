@@ -35,6 +35,23 @@ def run_simulation(steps=30, num_regulators=3, num_producers=4, num_users=10, in
         incident_step=incident_step
     )
 
+    # Display initial values for each stakeholder before running the simulation
+    print("\n" + "="*50)
+    print("--- INITIAL STAKEHOLDER VALUES (T = 0) ---")
+    print("="*50)
+    initial_agent_data = []
+    for agent in model.schedule.agents:
+        initial_agent_data.append({
+            "AgentID": agent.unique_id,
+            "Type": agent.stakeholder_type,
+            "SubType": agent.sub_type,
+            "OperationalCapacity": agent.operational_capacity,
+            "RegulatoryPressure": agent.regulatory_pressure,
+            "ThreatLevel": agent.threat_level
+        })
+    df_initial = pd.DataFrame(initial_agent_data)
+    print(df_initial.to_string(index=False))
+
     for i in range(steps):
         model.step()
 
