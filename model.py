@@ -77,7 +77,7 @@ SCENARIOS = {
 
 class CyberComplianceModel(Model):
     """
-    Agent-Based Model for Cybersecurity Regulatory Compliance supporting real-world incident presets.
+    Agent-Based Model for Cybersecurity Regulatory Compliance supporting real-world incident presets and random setups.
     """
     def __init__(self, scenario_name="equifax_2017", width=10, height=10, incident_step=10):
         super().__init__()
@@ -91,26 +91,53 @@ class CyberComplianceModel(Model):
         self.incident_step = incident_step
         self.current_step_count = 0
 
-        # Load scenario configuration
-        scenario_def = SCENARIOS.get(scenario_name, SCENARIOS["equifax_2017"])
-        
-        # Instantiate Regulators
-        for idx, r_data in enumerate(scenario_def["regulators"]):
-            agent = StakeholderAgent(f"reg_{idx}", self, "regulator", sub_type=r_data["sub_type"], custom_props=r_data["props"])
-            self.schedule.add(agent)
-            self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+        if scenario_name == "random":
+            # Fully randomized setup across stakeholder types and properties
+            num_regulators = random.randint(2, 4)
+            num_producers = random.randint(3, 6)
+            num_users = random.randint(8, 15)
+            
+            reg_types = ["national", "local", "weak_regulator"]
+            for i in range(num_regulators):
+                stype = random.choice(reg_types)
+                agent = StakeholderAgent(f"reg_{i}", self, "regulator", sub_type=stype)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
 
-        # Instantiate Producers
-        for idx, p_data in enumerate(scenario_def["producers"]):
-            agent = StakeholderAgent(f"prod_{idx}", self, "producer", sub_type=p_data["sub_type"], custom_props=p_data["props"])
-            self.schedule.add(agent)
-            self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+            prod_types = ["large_social", "mid_health", "standard"]
+            for i in range(num_producers):
+                stype = random.choice(prod_types)
+                agent = StakeholderAgent(f"prod_{i}", self, "producer", sub_type=stype)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
 
-        # Instantiate Users
-        for idx, u_data in enumerate(scenario_def["users"]):
-            agent = StakeholderAgent(f"user_{idx}", self, "user", sub_type=u_data["sub_type"], custom_props=u_data["props"])
-            self.schedule.add(agent)
-            self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+            user_types = ["high_profile", "regular"]
+            for i in range(num_users):
+                stype = random.choice(user_types)
+                agent = StakeholderAgent(f"user_{i}", self, "user", sub_type=stype)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+        else:
+            # Load scenario configuration
+            scenario_def = SCENARIOS.get(scenario_name, SCENARIOS["equifax_2017"])
+            
+            # Instantiate Regulators
+            for idx, r_data in enumerate(scenario_def["regulators"]):
+                agent = StakeholderAgent(f"reg_{idx}", self, "regulator", sub_type=r_data["sub_type"], custom_props=r_data["props"])
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+
+            # Instantiate Producers
+            for idx, p_data in enumerate(scenario_def["producers"]):
+                agent = StakeholderAgent(f"prod_{idx}", self, "producer", sub_type=p_data["sub_type"], custom_props=p_data["props"])
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
+
+            # Instantiate Users
+            for idx, u_data in enumerate(scenario_def["users"]):
+                agent = StakeholderAgent(f"user_{idx}", self, "user", sub_type=u_data["sub_type"], custom_props=u_data["props"])
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
 
         # Data Collector setup with Gini coefficient and advanced distribution trackers
         self.datacollector = DataCollector(

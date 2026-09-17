@@ -11,19 +11,23 @@ logger = logging.getLogger("CyberComplianceModel")
 def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42, output_dir="outputs"):
     os.makedirs(output_dir, exist_ok=True)
     
-    if scenario not in SCENARIOS:
-        print(f"Error: Unknown scenario '{scenario}'. Available presets: {list(SCENARIOS.keys())}")
+    if scenario != "random" and scenario not in SCENARIOS:
+        print(f"Error: Unknown scenario '{scenario}'. Available presets: {list(SCENARIOS.keys())} or 'random'")
         return
 
-    scenario_info = SCENARIOS[scenario]
+    if scenario == "random":
+        scenario_desc = "Randomly generated stochastic baseline scenario."
+    else:
+        scenario_desc = SCENARIOS[scenario]["description"]
+
     print(f"\n" + "="*70)
     print(f"--- RUNNING SCENARIO: {scenario.upper()} ---")
-    print(f"Description: {scenario_info['description']}")
+    print(f"Description: {scenario_desc}")
     print("="*70)
 
     config = {
         "scenario": scenario,
-        "description": scenario_info["description"],
+        "description": scenario_desc,
         "steps": steps,
         "incident_step": incident_step,
         "seed": seed,
@@ -95,8 +99,8 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
     print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe())
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation with preset incident scenarios.")
-    parser.add_argument("--scenario", type=str, default="equifax_2017", choices=list(SCENARIOS.keys()), help="Preset incident scenario to simulate.")
+    parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation with preset or random scenarios.")
+    parser.add_argument("--scenario", type=str, default="equifax_2017", choices=list(SCENARIOS.keys()) + ["random"], help="Preset incident scenario or 'random' for randomized initialization.")
     parser.add_argument("--steps", type=int, default=30, help="Total simulation steps.")
     parser.add_argument("--incident_step", type=int, default=10, help="Step at which the cybersecurity incident occurs.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")
