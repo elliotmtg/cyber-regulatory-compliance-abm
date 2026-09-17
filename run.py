@@ -3,20 +3,28 @@ import json
 import os
 import pandas as pd
 from datetime import datetime
-from model import CyberComplianceModel
+from model import CyberComplianceModel, SCENARIOS
 import logging
 
 logger = logging.getLogger("CyberComplianceModel")
 
-def run_simulation(steps=30, num_regulators=3, num_producers=4, num_users=10, incident_step=15, seed=42, output_dir="outputs"):
+def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42, output_dir="outputs"):
     os.makedirs(output_dir, exist_ok=True)
     
-    # Save configuration
+    if scenario not in SCENARIOS:
+        print(f"Error: Unknown scenario '{scenario}'. Available presets: {list(SCENARIOS.keys())}")
+        return
+
+    scenario_info = SCENARIOS[scenario]
+    print(f"\n" + "="*70)
+    print(f"--- RUNNING SCENARIO: {scenario.upper()} ---")
+    print(f"Description: {scenario_info['description']}")
+    print("="*70)
+
     config = {
+        "scenario": scenario,
+        "description": scenario_info["description"],
         "steps": steps,
-        "num_regulators": num_regulators,
-        "num_producers": num_producers,
-        "num_users": num_users,
         "incident_step": incident_step,
         "seed": seed,
         "timestamp": datetime.now().isoformat()
@@ -29,15 +37,13 @@ def run_simulation(steps=30, num_regulators=3, num_producers=4, num_users=10, in
 
     # Initialize model
     model = CyberComplianceModel(
-        num_regulators=num_regulators,
-        num_producers=num_producers,
-        num_users=num_users,
+        scenario_name=scenario,
         incident_step=incident_step
     )
 
     # Display initial values for each stakeholder before running the simulation
     print("\n" + "="*50)
-    print("--- INITIAL STAKEHOLDER VALUES (T = 0) ---")
+    print(f"--- INITIAL STAKEHOLDER VALUES (T = 0) [{scenario}] ---")
     print("="*50)
     initial_agent_data = []
     for agent in model.schedule.agents:
@@ -79,32 +85,28 @@ def run_simulation(steps=30, num_regulators=3, num_producers=4, num_users=10, in
         phase_subset = model_data[model_data["Phase"] == phase_val]
         print(f"\n--- Phase {phase_val} (Steps: {len(phase_subset)}) ---")
         if not phase_subset.empty:
-            print(phase_subset[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure"]].describe())
+            print(phase_subset[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe())
         else:
             print("No steps recorded in this phase.")
             
     print("\n" + "="*50)
     print("--- OVERALL MODEL SUMMARY STATISTICS ---")
     print("="*50)
-    print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure"]].describe())
+    print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe())
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation.")
+    parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation with preset incident scenarios.")
+    parser.add_argument("--scenario", type=str, default="equifax_2017", choices=list(SCENARIOS.keys()), help="Preset incident scenario to simulate.")
     parser.add_argument("--steps", type=int, default=30, help="Total simulation steps.")
-    parser.add_argument("--regulators", type=int, default=3, help="Number of regulator agents.")
-    parser.add_argument("--producers", type=int, default=4, help="Number of software producer agents.")
-    parser.add_argument("--users", type=int, default=10, help="Number of user agents.")
-    parser.add_argument("--incident_step", type=int, default=15, help="Step at which the cybersecurity incident occurs.")
+    parser.add_argument("--incident_step", type=int, default=10, help="Step at which the cybersecurity incident occurs.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")
     parser.add_argument("--output", type=str, default="outputs", help="Directory to store simulation outputs.")
 
     args = parser.parse_args()
     
     run_simulation(
+        scenario=args.scenario,
         steps=args.steps,
-        num_regulators=args.regulators,
-        num_producers=args.producers,
-        num_users=args.users,
         incident_step=args.incident_step,
         seed=args.seed,
         output_dir=args.output
