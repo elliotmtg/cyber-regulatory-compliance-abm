@@ -81,22 +81,39 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
     print(f"Results stored in absolute path: {os.path.abspath(output_dir)}")
     
     # Print summary statistics split by Phase
-    print("\n" + "="*50)
+    print("\n" + "="*70)
     print("--- MODEL SUMMARY STATISTICS BY PHASE ---")
-    print("="*50)
+    print("="*70)
     
     for phase_val in [1, 2]:
         phase_subset = model_data[model_data["Phase"] == phase_val]
-        print(f"\n--- Phase {phase_val} (Steps: {len(phase_subset)}) ---")
+        print(f"\n[ PHASE {phase_val} ] (Steps recorded: {len(phase_subset)})")
         if not phase_subset.empty:
-            print(phase_subset[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe())
+            print("\n  >> Macro System Metrics:")
+            print(phase_subset[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe().to_string())
+            
+            print("\n  >> Disaggregated Stakeholder Averages:")
+            stakeholder_cols = [
+                "Regulator_AvgOpCap", "Regulator_AvgRegPress",
+                "Producer_AvgThreat", "Producer_AvgOpCap", "Producer_AvgRegPress",
+                "User_AvgThreat", "User_AvgOpCap", "User_AvgRegPress"
+            ]
+            print(phase_subset[stakeholder_cols].mean().to_frame(name="Phase Mean").to_string())
+
+            if phase_val == 2:
+                print("\n  >> Financial & Enforcement Totals (End of Phase 2):")
+                latest_step = phase_subset.iloc[-1]
+                print(f"     Total Producer Fines Paid:         ${latest_step['Producer_TotalFinesPaid']:,.2f}")
+                print(f"     Total Producer Compensation Paid:   ${latest_step['Producer_TotalCompPaid']:,.2f}")
+                print(f"     Net Producer Financial Burden:      ${latest_step['Producer_NetCost']:,.2f}")
+                print(f"     Total User Compensation Received:   ${latest_step['User_TotalCompReceived']:,.2f}")
         else:
             print("No steps recorded in this phase.")
             
-    print("\n" + "="*50)
-    print("--- OVERALL MODEL SUMMARY STATISTICS ---")
-    print("="*50)
-    print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe())
+    print("\n" + "="*70)
+    print("--- OVERALL SIMULATION SUMMARY ---")
+    print("="*70)
+    print(model_data[["AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini"]].describe().to_string())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Cybersecurity Regulatory Compliance ABM simulation with preset or random scenarios.")

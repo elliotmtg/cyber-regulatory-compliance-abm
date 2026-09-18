@@ -139,15 +139,31 @@ class CyberComplianceModel(Model):
                 self.schedule.add(agent)
                 self.grid.place_agent(agent, (random.randrange(width), random.randrange(height)))
 
-        # Data Collector setup with Gini coefficient and advanced distribution trackers
+        # Data Collector setup with disaggregated stakeholder metrics and financial trackers
         self.datacollector = DataCollector(
             model_reporters={
                 "Phase": lambda m: m.phase,
                 "IncidentOccurred": lambda m: int(m.incident_occurred),
+                # Global Averages
                 "AvgThreat": lambda m: m.get_average_threat(),
                 "AvgOperationalCapacity": lambda m: m.get_average_op_cap(),
                 "AvgRegulatoryPressure": lambda m: m.get_average_reg_press(),
                 "ThreatGini": lambda m: m.calculate_gini([a.threat_level for a in m.schedule.agents]),
+                # Disaggregated Stakeholder Metrics: Regulators
+                "Regulator_AvgOpCap": lambda m: m.get_group_avg("regulator", "operational_capacity"),
+                "Regulator_AvgRegPress": lambda m: m.get_group_avg("regulator", "regulatory_pressure"),
+                # Disaggregated Stakeholder Metrics: Producers
+                "Producer_AvgThreat": lambda m: m.get_group_avg("producer", "threat_level"),
+                "Producer_AvgOpCap": lambda m: m.get_group_avg("producer", "operational_capacity"),
+                "Producer_AvgRegPress": lambda m: m.get_group_avg("producer", "regulatory_pressure"),
+                "Producer_TotalFinesPaid": lambda m: sum(a.fines_paid for a in m.schedule.agents if a.stakeholder_type == "producer"),
+                "Producer_TotalCompPaid": lambda m: sum(a.compensation_paid for a in m.schedule.agents if a.stakeholder_type == "producer"),
+                "Producer_NetCost": lambda m: sum(-a.wealth_or_cost for a in m.schedule.agents if a.stakeholder_type == "producer"),
+                # Disaggregated Stakeholder Metrics: Users
+                "User_AvgThreat": lambda m: m.get_group_avg("user", "threat_level"),
+                "User_AvgOpCap": lambda m: m.get_group_avg("user", "operational_capacity"),
+                "User_AvgRegPress": lambda m: m.get_group_avg("user", "regulatory_pressure"),
+                "User_TotalCompReceived": lambda m: sum(a.compensation_received for a in m.schedule.agents if a.stakeholder_type == "user"),
             },
             agent_reporters={
                 "Type": lambda a: a.stakeholder_type,
@@ -155,10 +171,19 @@ class CyberComplianceModel(Model):
                 "OperationalCapacity": lambda a: a.operational_capacity,
                 "RegulatoryPressure": lambda a: a.regulatory_pressure,
                 "ThreatLevel": lambda a: a.threat_level,
-                "WealthOrCost": lambda a: a.wealth_or_cost
+                "WealthOrCost": lambda a: a.wealth_or_cost,
+                "FinesPaid": lambda a: a.fines_paid,
+                "CompensationPaid": lambda a: a.compensation_paid,
+                "CompensationReceived": lambda a: a.compensation_received
             }
         )
         logger.info("CyberComplianceModel initialized with preset scenario '%s' (%d agents).", scenario_name, len(self.schedule.agents))
+
+    def get_group_avg(self, stakeholder_type, attribute):
+        agents = [a for a in self.schedule.agents if a.stakeholder_type == stakeholder_type]
+        if not agents:
+            return 0.0
+        return sum(getattr(a, attribute) for a in agents) / len(agents)
 
     def get_average_threat(self):
         agents = self.schedule.agents
