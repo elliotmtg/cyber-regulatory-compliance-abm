@@ -28,3 +28,4 @@ logs/
 *.html
 *.md
 !README.md
+!ODD_PROTOCOL.md
