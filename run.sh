@@ -1,3 +1,4 @@
 #!/bin/bash
-source .venv/bin/activate
-python run.py "$@"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$DIR/.venv/bin/python" "$DIR/run.py" "$@"
+
