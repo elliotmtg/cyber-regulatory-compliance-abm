@@ -428,12 +428,26 @@ if __name__ == "__main__":
     parser.add_argument("--incident_step", type=int, default=10, help="Incident step (default: 10).")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42).")
     parser.add_argument("--output", type=str, default="outputs", help="Output directory (default: 'outputs').")
+    parser.add_argument("--monte_carlo", action="store_true", help="Execute Monte Carlo batch sweep using stochastic random scenarios.")
+    parser.add_argument("--runs", type=int, default=100, help="Number of Monte Carlo iterations (default: 100).")
 
     args = parser.parse_args()
-    run_simulation(
-        scenario=args.scenario,
-        steps=args.steps,
-        incident_step=args.incident_step,
-        seed=args.seed,
-        output_dir=args.output
-    )
+
+    if args.monte_carlo:
+        from monte_carlo import run_monte_carlo
+        mc_output = args.output if args.output != "outputs" else "outputs/monte_carlo"
+        run_monte_carlo(
+            runs=args.runs,
+            steps=args.steps,
+            incident_step=args.incident_step,
+            base_seed=args.seed,
+            output_dir=mc_output
+        )
+    else:
+        run_simulation(
+            scenario=args.scenario,
+            steps=args.steps,
+            incident_step=args.incident_step,
+            seed=args.seed,
+            output_dir=args.output
+        )

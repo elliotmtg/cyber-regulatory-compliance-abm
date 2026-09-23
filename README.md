@@ -157,24 +157,46 @@ Specify any preset scenario using the `--scenario` flag:
 # ICRC 2022
 .\run.ps1 --scenario icrc_2022 --steps 30 --incident_step 10
 
-# Stochastic / Monte Carlo Randomized Setup
+# Stochastic / Monte Carlo Single Run
 .\run.ps1 --scenario random --steps 50 --incident_step 15 --seed 123
 ```
 
-### 3. Command-Line Options
+### 3. Monte Carlo Parameter Sweeps (Batch Execution)
+Run stochastic Monte Carlo sweeps across $N$ iterations to evaluate emergent stability distributions, resilience velocity (MTTR), actuarial tail risk (VaR & CVaR), and precursor risk sensitivities:
+
+**macOS / Linux:**
+```bash
+./run.sh --monte_carlo --runs 100 --steps 30 --incident_step 10
+```
+
+**Windows (PowerShell):**
+```powershell
+.\run.ps1 --monte_carlo --runs 100 --steps 30 --incident_step 10
+```
+
+*(Alternatively: `.\.venv\Scripts\python.exe run.py --monte_carlo --runs 100` or direct CLI `python monte_carlo.py --runs 100`)*
+
+### 4. Command-Line Options
 - `--scenario`: Preset incident name (`equifax_2017`, `catalangate_whatsapp`, `opm_2016`, `illuminate_education_2025`, `icrc_2022`, or `random`).
+- `--monte_carlo`: Enable batch Monte Carlo sweep mode using stochastic random scenarios.
+- `--runs`: Total Monte Carlo iterations to execute (default: `100`).
 - `--steps`: Total simulation steps (default: `30`).
 - `--incident_step`: Step at which the cybersecurity incident occurs (default: `10`).
 - `--seed`: Random seed for reproducibility (default: `42`).
-- `--output`: Output directory for generated CSVs and config JSON (default: `outputs`).
+- `--output`: Output directory for generated CSVs and config JSON (default: `outputs` for single runs, `outputs/monte_carlo` for sweeps).
 
 ---
 
 ## Output Structure
 
-Each run outputs the following artifacts:
+### Single Scenario Run Outputs:
 - **`outputs/summary_report.md`**: Human-auditable executive Markdown summary including the Longitudinal Trajectory Matrix, stage behavioral dashboards, financial ledgers, and empirical validation audit scorecard.
 - **`outputs/config.json`**: Exact simulation parameters, scenario name, seed, and timestamp.
 - **`outputs/model_output.csv`**: Time-series macro metrics, Gini coefficients, and disaggregated stakeholder averages for every tick.
 - **`outputs/agent_output.csv`**: Step-by-step state records for each individual agent.
 - **`logs/simulation.log`**: Detailed event log of compliance enforcement, fines levied, and compensation paid.
+
+### Monte Carlo Sweep Outputs (`outputs/monte_carlo/`):
+- **`outputs/monte_carlo/monte_carlo_report.md`**: Executive summary report containing macro equilibrium distributions, MTTR recovery dynamics, actuarial VaR/CVaR tables, and Spearman sensitivity rankings.
+- **`outputs/monte_carlo/summary_statistics.csv`**: Structured CSV containing macro distribution percentiles (IQR, median, min, max), recovery metrics, and financial risk limits.
+- **`outputs/monte_carlo/runs.csv`**: Complete record of all $M$ simulated sample paths for downstream statistical analysis.
