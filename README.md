@@ -38,6 +38,8 @@ The simulation advances across two distinct phases:
 - `uv` package manager (or Python virtual environments)
 
 ### Setup Virtual Environment
+
+**macOS / Linux (Bash):**
 ```bash
 git clone https://github.com/elliotmtg/cyber-regulatory-compliance-abm.git
 cd cyber-regulatory-compliance-abm
@@ -47,19 +49,39 @@ uv venv .venv --python /usr/bin/python3
 uv pip install -r requirements.txt
 ```
 
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/elliotmtg/cyber-regulatory-compliance-abm.git
+cd cyber-regulatory-compliance-abm
+
+# Create virtual environment and install pinned dependencies
+uv venv .venv --python 3.11
+uv pip install -r requirements.txt
+```
+
 ---
 
 ## Running the Simulation
 
-### 1. Convenience Shell Wrapper (Recommended)
+### 1. Convenience Wrapper (Recommended)
 Run with default settings (Equifax 2017 scenario, 30 steps, incident at step 10):
+
+**macOS / Linux:**
 ```bash
 ./run.sh
 ```
 
+**Windows (PowerShell):**
+```powershell
+.\run.ps1
+```
+
+*(Alternatively, call Python directly: `.\.venv\Scripts\python.exe run.py` on Windows or `.venv/bin/python run.py` on Linux/macOS)*
+
 ### 2. Custom Preset Scenarios
 Specify any preset scenario using the `--scenario` flag:
 
+**macOS / Linux:**
 ```bash
 # Equifax 2017
 ./run.sh --scenario equifax_2017 --steps 30 --incident_step 10
@@ -78,6 +100,27 @@ Specify any preset scenario using the `--scenario` flag:
 
 # Stochastic / Monte Carlo Randomized Setup
 ./run.sh --scenario random --steps 50 --incident_step 15 --seed 123
+```
+
+**Windows (PowerShell):**
+```powershell
+# Equifax 2017
+.\run.ps1 --scenario equifax_2017 --steps 30 --incident_step 10
+
+# CatalanGate / Pegasus
+.\run.ps1 --scenario catalangate_whatsapp --steps 30 --incident_step 10
+
+# OPM 2016
+.\run.ps1 --scenario opm_2016 --steps 30 --incident_step 10
+
+# Illuminate Education 2025
+.\run.ps1 --scenario illuminate_education_2025 --steps 30 --incident_step 10
+
+# ICRC 2022
+.\run.ps1 --scenario icrc_2022 --steps 30 --incident_step 10
+
+# Stochastic / Monte Carlo Randomized Setup
+.\run.ps1 --scenario random --steps 50 --incident_step 15 --seed 123
 ```
 
 ### 3. Command-Line Options
