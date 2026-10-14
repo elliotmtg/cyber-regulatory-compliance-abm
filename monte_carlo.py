@@ -167,65 +167,122 @@ def run_monte_carlo(runs=100, steps=30, incident_step=10, base_seed=42, output_d
     df_runs.to_csv(runs_csv_path, index=False)
 
     # =================================================================
-    # AGGREGATE MONTE CARLO STATISTICS
+    # AGGREGATE MONTE CARLO STATISTICS FOR RESEARCH PUBLICATION
     # =================================================================
-    # 1. Macro Equilibrium Distributions
-    macro_cols = ["Terminal_AvgThreat", "Terminal_AvgOpCap", "Terminal_AvgRegPress", "Terminal_ThreatGini"]
-    macro_summary_rows = []
-    for col in macro_cols:
-        series = df_runs[col]
-        q25 = series.quantile(0.25)
-        q75 = series.quantile(0.75)
-        macro_summary_rows.append({
-            "Metric": col.replace("Terminal_", "").replace("_", " "),
-            "Mean": round(series.mean(), 3),
-            "StdDev": round(series.std(), 3),
-            "Median": round(series.median(), 3),
-            "Q25 (25%)": round(q25, 3),
-            "Q75 (75%)": round(q75, 3),
-            "IQR": round(q75 - q25, 3),
-            "Min": round(series.min(), 3),
-            "Max": round(series.max(), 3)
-        })
-    df_macro_summary = pd.DataFrame(macro_summary_rows)
+    
+    # 1. CORE ESSENTIAL 5 RESEARCH PAPER METRICS
+    term_threat_series = df_runs["Terminal_AvgThreat"]
+    net_cost_series = df_runs["Producer_NetCost"]
+    
+    threat_mean = term_threat_series.mean()
+    threat_std = term_threat_series.std()
+    threat_min = term_threat_series.min()
+    threat_max = term_threat_series.max()
 
-    stability_rate = (df_runs["Stabilized"].sum() / runs) * 100.0
-
-    # 2. Breach & Recovery Statistics
+    breach_rate = 100.0  # Base scheduled breach is modeled in each run
     early_breach_rate = (df_runs["EarlyBreach"].sum() / runs) * 100.0
     remediation_rate = (df_runs["RemediationSuccess"].sum() / runs) * 100.0
+    stability_rate = (df_runs["Stabilized"].sum() / runs) * 100.0
+
     mttr_mean = df_runs["MTTR_Ticks"].mean()
     mttr_std = df_runs["MTTR_Ticks"].std()
     mttr_median = df_runs["MTTR_Ticks"].median()
 
+    cost_mean = net_cost_series.mean()
+    cost_median = net_cost_series.median()
+    cost_q25 = net_cost_series.quantile(0.25)
+    cost_q75 = net_cost_series.quantile(0.75)
+    cost_p95 = net_cost_series.quantile(0.95)
+    cost_max = net_cost_series.max()
+
+    restitution_mean = df_runs["RestitutionCoveragePct"].mean()
+    user_comp_mean = df_runs["User_CompReceived"].mean()
+
+    paper_summary_rows = [
+        {
+            "Research Metric": "1. Equilibrium System Threat",
+            "Result (Summary)": f"{threat_mean:.2f} +/- {threat_std:.2f}",
+            "Benchmark / Scale": f"1 - 5 Scale (Min: {threat_min:.2f}, Max: {threat_max:.2f})",
+            "Academic Interpretation": "Post-intervention ecosystem vulnerability level"
+        },
+        {
+            "Research Metric": "2. Early Precursor Breach Rate",
+            "Result (Summary)": f"{early_breach_rate:.1f}%",
+            "Benchmark / Scale": "0% - 100% of Runs",
+            "Academic Interpretation": "Failure before scheduled tick due to unmitigated risk"
+        },
+        {
+            "Research Metric": "3. Mean Time to Remediate (MTTR)",
+            "Result (Summary)": f"{mttr_mean:.2f} +/- {mttr_std:.2f} ticks",
+            "Benchmark / Scale": f"Discrete Steps (Median: {mttr_median:.1f})",
+            "Academic Interpretation": "Organizational recovery velocity to safe threat (<= 2.0)"
+        },
+        {
+            "Research Metric": "4. Producer Financial Burden",
+            "Result (Summary)": f"Median: ${cost_median:,.0f} [IQR: ${cost_q25:,.0f} - ${cost_q75:,.0f}]",
+            "Benchmark / Scale": f"Mean: ${cost_mean:,.0f} | Worst-Case: ${cost_max:,.0f}",
+            "Academic Interpretation": "Total economic cost of fines, crisis response, and claims"
+        },
+        {
+            "Research Metric": "5. User Restitution Share",
+            "Result (Summary)": f"{restitution_mean:.1f}%",
+            "Benchmark / Scale": f"Mean Restitution: ${user_comp_mean:,.0f} per run",
+            "Academic Interpretation": "Fraction of producer penalty costs returned to victims"
+        }
+    ]
+    df_paper_summary = pd.DataFrame(paper_summary_rows)
+
+    # 2. STAKEHOLDER MACRO EQUILIBRIUM COMPARISON (1-5 Scale)
+    stakeholder_rows = [
+        {
+            "Stakeholder Group": "Software Producers",
+            "Threat Level (1-5)": f"{df_runs['Terminal_Producer_Threat'].mean():.2f} +/- {df_runs['Terminal_Producer_Threat'].std():.2f}",
+            "Operational Capacity (1-5)": f"{df_runs['Terminal_Producer_OpCap'].mean():.2f} +/- {df_runs['Terminal_Producer_OpCap'].std():.2f}",
+            "Regulatory Pressure (1-5)": "N/A (Target of Regulation)"
+        },
+        {
+            "Stakeholder Group": "Users / Consumers",
+            "Threat Level (1-5)": f"{df_runs['Terminal_User_Threat'].mean():.2f} +/- {df_runs['Terminal_User_Threat'].std():.2f}",
+            "Operational Capacity (1-5)": "N/A",
+            "Regulatory Pressure (1-5)": "N/A"
+        },
+        {
+            "Stakeholder Group": "Regulators",
+            "Threat Level (1-5)": "N/A",
+            "Operational Capacity (1-5)": f"{df_runs['Regulator_Capacity_T0'].mean():.2f} +/- {df_runs['Regulator_Capacity_T0'].std():.2f}",
+            "Regulatory Pressure (1-5)": f"{df_runs['Terminal_Regulator_RegPress'].mean():.2f} +/- {df_runs['Terminal_Regulator_RegPress'].std():.2f}"
+        },
+        {
+            "Stakeholder Group": "Entire System (Average)",
+            "Threat Level (1-5)": f"{threat_mean:.2f} +/- {threat_std:.2f}",
+            "Operational Capacity (1-5)": f"{df_runs['Terminal_AvgOpCap'].mean():.2f} +/- {df_runs['Terminal_AvgOpCap'].std():.2f}",
+            "Regulatory Pressure (1-5)": f"{df_runs['Terminal_AvgRegPress'].mean():.2f} +/- {df_runs['Terminal_AvgRegPress'].std():.2f}"
+        }
+    ]
+    df_stakeholder_summary = pd.DataFrame(stakeholder_rows)
+
+    # 3. RECOVERY & RESILIENCE DYNAMICS
     recovery_summary_rows = [
-        {"Dynamic Metric": "Early Endogenous Breach Rate (%)", "Value": f"{early_breach_rate:.1f}%", "Description": "Breached prior to scheduled incident step due to threat >= 4.75"},
-        {"Dynamic Metric": "Remediation Success Rate (%)", "Value": f"{remediation_rate:.1f}%", "Description": "Producer threat successfully reduced to <= 2.0 post-breach"},
-        {"Dynamic Metric": "Mean Time to Remediate (MTTR)", "Value": f"{mttr_mean:.2f} +/- {mttr_std:.2f} ticks", "Description": f"Median MTTR: {mttr_median:.1f} ticks to resolve vulnerability"},
-        {"Dynamic Metric": "System Stability Rate (%)", "Value": f"{stability_rate:.1f}%", "Description": "Percentage of runs where final average threat stabilized <= 2.5"}
+        {"Resilience Metric": "Remediation Success Rate", "Value": f"{remediation_rate:.1f}%", "Description": "Producer threat successfully reduced to <= 2.0 post-breach"},
+        {"Resilience Metric": "Early Endogenous Breach Rate", "Value": f"{early_breach_rate:.1f}%", "Description": "Breached prior to scheduled incident step due to threat >= 4.75"},
+        {"Resilience Metric": "Mean Time to Remediate (MTTR)", "Value": f"{mttr_mean:.2f} +/- {mttr_std:.2f} ticks", "Description": f"Median MTTR: {mttr_median:.1f} ticks to resolve vulnerability"},
+        {"Resilience Metric": "System Stability Rate", "Value": f"{stability_rate:.1f}%", "Description": "Runs where final average threat stabilized <= 2.5"}
     ]
     df_recovery_summary = pd.DataFrame(recovery_summary_rows)
 
-    # 3. Financial Tail-Risk Metrics (Actuarial Cyber Risk)
-    net_costs = df_runs["Producer_NetCost"]
-    exp_loss = net_costs.mean()
-    var_90 = net_costs.quantile(0.90)
-    var_95 = net_costs.quantile(0.95)
-    var_99 = net_costs.quantile(0.99)
-    cvar_95 = net_costs[net_costs >= var_95].mean() if len(net_costs[net_costs >= var_95]) > 0 else var_95
-    mean_restitution = df_runs["RestitutionCoveragePct"].mean()
-
-    tail_risk_rows = [
-        {"Tail Risk Metric": "Expected Producer Burden (E[L])", "Amount ($)": f"${exp_loss:,.2f}", "Interpretation": "Mean financial burden across all stochastic environments"},
-        {"Tail Risk Metric": "Value at Risk (VaR 90%)", "Amount ($)": f"${var_90:,.2f}", "Interpretation": "90% confidence upper loss limit"},
-        {"Tail Risk Metric": "Value at Risk (VaR 95%)", "Amount ($)": f"${var_95:,.2f}", "Interpretation": "95% confidence upper loss limit (1-in-20 year loss)"},
-        {"Tail Risk Metric": "Value at Risk (VaR 99%)", "Amount ($)": f"${var_99:,.2f}", "Interpretation": "99% confidence upper loss limit (1-in-100 catastrophic loss)"},
-        {"Tail Risk Metric": "Conditional VaR (CVaR 95%)", "Amount ($)": f"${cvar_95:,.2f}", "Interpretation": "Expected Shortfall: Mean loss in the worst 5% black-swan runs"},
-        {"Tail Risk Metric": "Average Restitution Coverage", "Amount ($)": f"{mean_restitution:.1f}%", "Interpretation": "Mean percentage of producer burden directed to user compensation"}
+    # 4. ECONOMIC COSTS & RESTITUTION DISTRIBUTION
+    financial_rows = [
+        {"Economic Metric": "Mean Producer Total Cost", "Amount ($)": f"${cost_mean:,.2f}", "Description": "Average overall financial impact per producer"},
+        {"Economic Metric": "Median Producer Total Cost", "Amount ($)": f"${cost_median:,.2f}", "Description": "Median overall financial impact (50th percentile)"},
+        {"Economic Metric": "Interquartile Range (IQR: 25% - 75%)", "Amount ($)": f"${cost_q25:,.2f} - ${cost_q75:,.2f}", "Description": "Middle 50% distribution of producer costs"},
+        {"Economic Metric": "High-Impact Scenario (95th Percentile)", "Amount ($)": f"${cost_p95:,.2f}", "Description": "Cost in the top 5% most severe regulatory outcomes"},
+        {"Economic Metric": "Worst-Case Single Run Cost", "Amount ($)": f"${cost_max:,.2f}", "Description": "Maximum financial loss observed across all runs"},
+        {"Economic Metric": "Average Victim Restitution Paid", "Amount ($)": f"${user_comp_mean:,.2f}", "Description": "Mean compensation received by affected users"},
+        {"Economic Metric": "Restitution Share (%)", "Amount ($)": f"{restitution_mean:.1f}%", "Description": "Fraction of producer costs directly repairing user harm"}
     ]
-    df_tail_risk = pd.DataFrame(tail_risk_rows)
+    df_financial_summary = pd.DataFrame(financial_rows)
 
-    # 4. Precursor Sensitivity & Attribution (Spearman Rank Correlations via rank().corr())
+    # 5. PRECURSOR SENSITIVITY ATTRIBUTION (Spearman Rank Correlations)
     precursor_factors = ["Producer_BusinessChange_T0", "Producer_Failures_T0", "PrecursorRiskIndex_T0", "Regulator_Capacity_T0"]
     sensitivity_rows = []
     for factor in precursor_factors:
@@ -233,72 +290,80 @@ def run_monte_carlo(runs=100, steps=30, incident_step=10, base_seed=42, output_d
         corr_cost = df_runs[factor].rank().corr(df_runs["Producer_NetCost"].rank())
         sensitivity_rows.append({
             "Precursor Factor": factor.replace("_T0", "").replace("_", " "),
-            "Spearman Corr (vs. Final Threat)": round(corr_threat, 3) if not np.isnan(corr_threat) else 0.0,
-            "Spearman Corr (vs. Net Cost)": round(corr_cost, 3) if not np.isnan(corr_cost) else 0.0,
-            "Sensitivity Direction": "Elevates Risk" if corr_threat > 0.1 else ("Mitigates Risk" if corr_threat < -0.1 else "Neutral")
+            "Correlation with Threat (r)": round(corr_threat, 3) if not np.isnan(corr_threat) else 0.0,
+            "Correlation with Cost (r)": round(corr_cost, 3) if not np.isnan(corr_cost) else 0.0,
+            "Policy Impact": "Elevates Vulnerability" if corr_threat > 0.1 else ("Improves Security" if corr_threat < -0.1 else "Neutral")
         })
     df_sensitivity = pd.DataFrame(sensitivity_rows)
 
     # Save summary statistics CSV
     summary_csv_path = os.path.join(output_dir, "summary_statistics.csv")
     with open(summary_csv_path, "w", encoding="utf-8") as f:
-        f.write("# 1. Macro Equilibrium Summary\n")
-        df_macro_summary.to_csv(f, index=False)
-        f.write("\n# 2. Recovery & Breach Dynamics\n")
+        f.write("# 1. Core Paper Metrics\n")
+        df_paper_summary.to_csv(f, index=False)
+        f.write("\n# 2. Stakeholder Macro Equilibrium\n")
+        df_stakeholder_summary.to_csv(f, index=False)
+        f.write("\n# 3. Recovery and Resilience Dynamics\n")
         df_recovery_summary.to_csv(f, index=False)
-        f.write("\n# 3. Financial Tail Risk (VaR / CVaR)\n")
-        df_tail_risk.to_csv(f, index=False)
-        f.write("\n# 4. Precursor Sensitivity Drivers\n")
+        f.write("\n# 4. Economic Costs and Restitution\n")
+        df_financial_summary.to_csv(f, index=False)
+        f.write("\n# 5. Precursor Sensitivity Drivers\n")
         df_sensitivity.to_csv(f, index=False)
 
     # =================================================================
-    # GENERATE MARKDOWN EXECUTIVE REPORT
+    # GENERATE MARKDOWN EXECUTIVE REPORT (PAPER READY)
     # =================================================================
     report_path = os.path.join(output_dir, "monte_carlo_report.md")
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write(f"# Monte Carlo Simulation Sweep Executive Report\n\n")
+        f.write(f"# Monte Carlo Simulation Sweep: Academic Research Summary\n\n")
         f.write(f"- **Total Iterations (Runs):** `{runs}`\n")
         f.write(f"- **Simulation Steps:** `{steps}` | **Scheduled Incident Step:** `{incident_step}` | **Base Seed:** `{base_seed}`\n")
         f.write(f"- **Execution Timestamp:** `{datetime.now().isoformat()}`\n\n")
         f.write("---\n\n")
 
-        f.write("## 1. Macro Equilibrium & Distribution Statistics (Terminal Step)\n\n")
-        f.write(df_to_markdown(df_macro_summary) + "\n\n")
-        f.write(f"- **System Stability Rate:** **`{stability_rate:.1f}%`** of runs successfully stabilized with terminal threat $\\le 2.5$.\n\n")
+        f.write("## Table 1: Core Research Paper Metrics (Executive Overview)\n\n")
+        f.write("The 5 primary statistical indicators recommended for academic publication:\n\n")
+        f.write(df_to_markdown(df_paper_summary) + "\n\n")
 
-        f.write("## 2. Breach & Recovery Velocity Dynamics\n\n")
+        f.write("## Table 2: Stakeholder Macro Equilibrium (1–5 Scale)\n\n")
+        f.write("Disaggregated post-intervention equilibrium states across stakeholder groups:\n\n")
+        f.write(df_to_markdown(df_stakeholder_summary) + "\n\n")
+
+        f.write("## Table 3: Organizational Resilience & Recovery Dynamics\n\n")
+        f.write("Empirical metrics measuring breach prevention and remediation agility:\n\n")
         f.write(df_to_markdown(df_recovery_summary) + "\n\n")
 
-        f.write("## 3. Financial Tail-Risk & Actuarial Metrics (Producer Burden)\n\n")
-        f.write(df_to_markdown(df_tail_risk) + "\n\n")
-        f.write(f"> [!IMPORTANT]\n")
-        f.write(f"> **Value at Risk (95%):** Under 95% of market conditions, producer losses will not exceed **${var_95:,.2f}**. In the worst 5% tail risk cases (CVaR 95%), losses surge to an average of **${cvar_95:,.2f}**.\n\n")
+        f.write("## Table 4: Economic Costs & Victim Restitution Distribution\n\n")
+        f.write("Financial burden on software producers and compensation allocation to users:\n\n")
+        f.write(df_to_markdown(df_financial_summary) + "\n\n")
 
-        f.write("## 4. Precursor Sensitivity & Vulnerability Attribution\n\n")
-        f.write("Spearman rank correlation $(\\rho)$ evaluating which pre-breach precursor factors most heavily drive catastrophic losses:\n\n")
+        f.write("## Table 5: Sensitivity Analysis (Key Precursor Drivers)\n\n")
+        f.write("Rank correlation evaluating which pre-breach precursor factors most heavily influence final threat and cost:\n\n")
         f.write(df_to_markdown(df_sensitivity) + "\n\n")
 
-        f.write("---\n*Report generated by Cybersecurity Regulatory Compliance ABM Monte Carlo Engine.*\n")
+        f.write("---\n*Report generated by Cybersecurity Regulatory Compliance ABM Monte Carlo Engine for Academic Publication.*\n")
 
     # =================================================================
     # PRINT TERMINAL DASHBOARD
     # =================================================================
     if verbose:
         print("\n" + "=" * 80)
-        print(f"--- MONTE CARLO SWEEP RESULTS (N = {runs} Runs) ---")
+        print(f"--- MONTE CARLO RESEARCH RESULTS (N = {runs} Runs) ---")
         print("=" * 80)
 
-        print("\n[ 1. MACRO EQUILIBRIUM DISTRIBUTIONS ]")
-        print(df_macro_summary.to_string(index=False))
-        print(f"  >> System Stability Rate (Threat <= 2.5): {stability_rate:.1f}%")
+        print("\n[ TABLE 1: CORE RESEARCH PAPER METRICS ]")
+        print(df_paper_summary.to_string(index=False))
 
-        print("\n[ 2. BREACH & RECOVERY DYNAMICS ]")
+        print("\n[ TABLE 2: STAKEHOLDER MACRO EQUILIBRIUM (1-5 Scale) ]")
+        print(df_stakeholder_summary.to_string(index=False))
+
+        print("\n[ TABLE 3: RESILIENCE & RECOVERY DYNAMICS ]")
         print(df_recovery_summary.to_string(index=False))
 
-        print("\n[ 3. ACTUARIAL FINANCIAL TAIL RISK (VaR & CVaR) ]")
-        print(df_tail_risk.to_string(index=False))
+        print("\n[ TABLE 4: ECONOMIC COSTS & RESTITUTION ]")
+        print(df_financial_summary.to_string(index=False))
 
-        print("\n[ 4. PRECURSOR SENSITIVITY DRIVERS (Spearman Rank Correlation) ]")
+        print("\n[ TABLE 5: SENSITIVITY ANALYSIS (Precursor Drivers) ]")
         print(df_sensitivity.to_string(index=False))
 
         print("\n" + "=" * 80)
@@ -310,9 +375,10 @@ def run_monte_carlo(runs=100, steps=30, incident_step=10, base_seed=42, output_d
 
     return {
         "df_runs": df_runs,
-        "df_macro_summary": df_macro_summary,
+        "df_paper_summary": df_paper_summary,
+        "df_stakeholder_summary": df_stakeholder_summary,
         "df_recovery_summary": df_recovery_summary,
-        "df_tail_risk": df_tail_risk,
+        "df_financial_summary": df_financial_summary,
         "df_sensitivity": df_sensitivity
     }
 

@@ -23,8 +23,8 @@ The model reproduces several key empirical macro patterns:
 1. **The Velocity–Security Trade-off:** Producers accumulate hidden security debt when feature deployment outpaces proactive hardening.
 2. **Precursor Risk Build-up:** Incidents are preceded by organizational destabilization (M&A, rapid scaling, unaddressed patching backlogs) that erodes capacity.
 3. **Responsive Enforcement Pyramids:** Post-breach regulatory escalation moves from administrative posturing to monetary penalties, mandatory audits, and structural governance consent decrees.
-4. **Heavy-Tailed Actuarial Risk:** Cyber liabilities exhibit extreme tail risk, where average costs underestimate catastrophic loss scenarios.
-5. **Asymmetric Risk Dispersion:** Threat levels and operational recovery are unequally distributed across stakeholders, tracked via the Gini coefficient.
+4. **Economic Burden & Consumer Restitution:** Compliance and crisis costs fall heavily on software producers while restitution repairs direct consumer harm.
+5. **Organizational Resilience & Recovery Velocity:** Recovery agility is captured by Mean Time to Remediate (MTTR), demonstrating how enforcement postures accelerate technical remediation.
 
 ---
 
@@ -83,7 +83,7 @@ Within each simulation step ($t$):
    - Each agent executes the behavioral method corresponding to the active stage (`step_operating()`, `step_precursors()`, `step_recovering()`, or `step_outcomes()`).
    - Post-step boundaries are enforced using `clamp(val, 1, 5)`.
 3. **Data Collection:**
-   - `mesa.DataCollector` records system-level macro averages, Gini inequality, disaggregated stakeholder scores, stage-specific behavioral nodes, and cumulative financial totals.
+   - `mesa.DataCollector` records system-level macro averages, disaggregated stakeholder scores, stage-specific behavioral nodes, and cumulative financial totals.
 
 ---
 
@@ -94,14 +94,14 @@ Within each simulation step ($t$):
   - *Normalization of Deviance & Latent Failures:* Pre-incident risk accumulates incrementally as organizations accept unpatched vulnerabilities and organizational change (Vaughan, 1996; Reason, 1997, 2000).
   - *Security Technical Debt:* Prioritizing feature delivery over security hardening induces systemic fragility (Kruchten et al., 2012).
   - *Economics of Information Security:* Market externalities lead to under-investment in security because breach costs fall disproportionately on third-party users (Anderson & Moore, 2006).
-  - *Heavy-Tailed Actuarial Cyber Risk:* Cyber breach damages follow Pareto-type power-law distributions, requiring extreme tail-risk metrics (Wheatley et al., 2016; Eling & Wirfs, 2016).
+  - *Organizational Resilience & Cyber Hygiene:* Proactive security hardening and post-breach response velocity mitigate severe systemic and financial harm (Reason, 1997, 2000; Wheatley et al., 2016).
 - **Emergence:** Macro stability or systemic breakdown emerges from micro-level interactions between regulator audit capacity, producer security debt, and user advocacy pressure.
 - **Adaptation:** Producers adjust security investments post-breach under regulatory orders; regulators scale fines based on observed threat and producer capacity gaps.
 - **Objectives:** Regulators minimize ecosystem vulnerability and deter negligence; Producers balance feature velocity with regulatory compliance costs; Users seek data protection and monetary restitution.
 - **Sensing:** Regulators sense market threat levels through investigative audits and localized user complaints; producers sense regulatory pressure through audits and neighbor citations.
 - **Interaction:** Agents interact via spatial grid proximity during Phase 1 (lobbying and complaints), and globally across the jurisdictional schedule during Phase 2 (fines, restitution payments, and class-action damages).
 - **Stochasticity:** Bounded random probabilities model human fallibility: enforcement lapses, lobbying effectiveness, security debt accumulation, and early breach triggering.
-- **Observation:** Complete time-series data logging to CSV, automated longitudinal stage trajectory matrices, side-by-side empirical audit tables, and batch Monte Carlo parameter sweeps.
+- **Observation:** Complete time-series data logging to CSV, automated longitudinal stage trajectory matrices, side-by-side empirical audit tables, and publication-ready core paper metrics across batch Monte Carlo parameter sweeps.
 
 ---
 
@@ -162,25 +162,27 @@ In Stage 5, terminal equilibrium is established:
 - High producer `out_preservation` ($\ge 4$) stabilizes operational capacity ($\text{OpCap} \leftarrow \min(5, \text{OpCap} + 1)$).
 - High regulatory `out_remedies` or `out_transformations` ($\ge 4$) institutionalizes permanent oversight vigilance.
 
-#### F. Threat Inequality Submodel (Gini Coefficient)
-Measures the dispersion of cyber threat exposure across the population:
-$$\text{Gini} = \frac{2 \sum_{i=1}^n i \cdot y_i}{n \sum_{i=1}^n y_i} - \frac{n + 1}{n}$$
-where $y_i$ is the vector of sorted agent threat levels ($y_1 \le y_2 \le \dots \le y_n$).
+#### F. Core Statistical Metrics for Research Publication
+Across $M$ stochastic Monte Carlo runs (or longitudinal scenario runs), systemic outcomes are evaluated using five primary, peer-review-standard indicators:
 
-#### G. Actuarial Cyber Tail-Risk Submodel (Monte Carlo Sweeps)
-Across $M$ stochastic runs, net producer financial burden ($L = \text{Producer\_NetCost}$) is evaluated using extreme-value risk metrics:
-1. **Value at Risk ($\text{VaR}_\alpha$):**
-   $$\text{VaR}_\alpha = \inf \{ l \in \mathbb{R} : \mathcal{P}(L > l) \le 1 - \alpha \}$$
-   computed at $\alpha \in \{0.90, 0.95, 0.99\}$.
-2. **Conditional Value at Risk ($\text{CVaR}_{0.95}$ / Expected Shortfall):**
-   $$\text{CVaR}_{0.95} = \mathbb{E}\left[L \mid L \ge \text{VaR}_{0.95}\right]$$
-   Quantifies the expected loss in the worst 5% tail-risk regulatory enforcement scenarios.
+1. **Equilibrium System Threat ($\mu \pm \sigma$):**
+   $$\overline{\text{Threat}} = \frac{1}{N}\sum_{i=1}^N \text{Threat}_i$$
+   Evaluates terminal macro vulnerability on the standardized 1–5 scale post-intervention.
+2. **Breach Incidence & Early Failure Rate (%):**
+   $$\text{Early Breach Rate} = \frac{1}{M}\sum_{m=1}^M \mathbb{I}(T_{\text{breach}, m} < K) \times 100\%$$
+   Quantifies the frequency of catastrophic failures triggered prematurely by unmitigated precursor fragility.
 3. **Mean Time to Remediate (MTTR):**
-   $$\text{MTTR} = \frac{1}{M}\sum_{i=1}^M \left(T_{\text{remediation}, i} - T_{\text{breach}, i}\right)$$
-   measuring the average tick latency until producer threat drops $\le 2.0$.
-4. **Precursor Risk Attribution (Spearman Rank Correlation $\rho$):**
+   $$\text{MTTR} = \frac{1}{M}\sum_{m=1}^M \left(T_{\text{remediation}, m} - T_{\text{breach}, m}\right)$$
+   Measures organizational recovery agility as the elapsed discrete operational steps required for producer threat to drop to a safe baseline ($\le 2.0$).
+4. **Producer Financial Burden ($):**
+   Evaluates the direct economic cost of compliance penalties, forensic investigations, and consumer damages, summarized by the Median and Interquartile Range (IQR) alongside worst-case single-run maximum loss:
+   $$\text{Total Burden}_p = \text{FinesPaid}_p + \text{CompensationPaid}_p + \text{CrisisCosts}_p$$
+5. **Victim Restitution Share (%):**
+   $$\text{Restitution Share} = \frac{\sum \text{CompensationReceived}_u}{\sum \text{TotalBurden}_p} \times 100\%$$
+   Measures consumer welfare and governance justice—determining whether regulatory enforcement primarily penalizes firms or directly repairs user harm.
+6. **Precursor Sensitivity Attribution (Spearman Rank Correlation $\rho$):**
    $$\rho = 1 - \frac{6 \sum d_i^2}{M(M^2 - 1)}$$
-   attributing final threat and net cost variance to pre-breach precursor factors.
+   Identifies which pre-breach organizational precursor factors (e.g., M&A restructuring vs. unpatched CVEs) most strongly drive ultimate breach severity.
 
 ---
 
@@ -190,14 +192,14 @@ Across $M$ stochastic runs, net producer financial burden ($L = \text{Producer\_
 2. **Ayres, I., & Braithwaite, J. (1992).** *Responsive Regulation: Transcending the Deregulation Debate.* Oxford University Press. [ISBN: 978-0195070705]
 3. **Eling, M., & Wirfs, J. H. (2016).** *Cyber Risk: Too Big to Insure? Risk Transfer Options for a Mercurial Risk Class.* Institute of Insurance Economics, University of St. Gallen. [DOI: 10.2139/ssrn.2801452]
 4. **Farmer, J. D., & Foley, D. (2009).** "The economy needs agent-based modelling." *Nature*, 460(7256), 685–686. [DOI: 10.1038/460685a]
-5. **Gini, C. (1912).** *Variabilità e mutabilità.* Reprinted in *Memorie di metodologica statistica* (Ed. Pizetti, E., Salvemini, T.). Rome: Libreria Eredi Virgilio Veschi (1955).
+5. **Epstein, J. M. (2006).** *Generative Social Science: Studies in Agent-Based Computational Modeling.* Princeton University Press. [ISBN: 978-0691122472]
 6. **Grimm, V., Revilla, E., Berger, U., Jeltsch, F., Mooij, W. M., Railsback, S. F., Sauermann, H., Skov-Petersen, H., Tobias, S., & DeAngelis, D. L. (2005).** "Pattern-oriented modeling of agent-based complex systems: Lessons from ecology." *Science*, 310(5750), 987–991. [DOI: 10.1126/science.1116681]
 7. **Grimm, V., Berger, U., Bastiansen, F., Eliassen, S., Ginot, V., Giske, J., Goss-Custard, J., Grand, T., Heinz, S. K., Huse, G., Huth, A., Jepsen, J. U., Jørgensen, C., Mooij, W. M., Müller, B., Pe'er, G., Piou, C., Railsback, S. F., Robbins, A. M., ... & DeAngelis, D. L. (2006).** "A standard protocol for describing individual-based and agent-based models." *Ecological Modelling*, 198(1-2), 115–126. [DOI: 10.1016/j.ecolmodel.2006.04.023]
 8. **Grimm, V., Railsback, S. F., Vincenot, C. E., Berger, U., Gallagher, C., DeAngelis, D. L., Edmonds, B., Ge, J., Giske, J., Groeneveld, J., Johnston, A. S., Milles, A., Nabe-Nielsen, J., Polhill, J. G., Radchuk, V., Rohwäder, M. S., Stillman, R. A., Thiele, J. C., & Ayllón, D. (2020).** "The ODD protocol for describing agent-based and other simulation models: A second update to improve clarity, replication, and outreach." *Journal of Artificial Societies and Social Simulation*, 23(2), 7. [DOI: 10.18564/jasss.4259]
 9. **Kruchten, P., Nord, R. L., & Ozkaya, I. (2012).** "Technical debt: From metaphor to theory and practice." *IEEE Software*, 29(6), 18–21. [DOI: 10.1109/MS.2012.167]
 10. **Reason, J. (1997).** *Managing the Risks of Organizational Accidents.* Ashgate Publishing. [ISBN: 978-1840141054]
 11. **Reason, J. (2000).** "Human error: models and management." *British Medical Journal*, 320(7237), 768–770. [DOI: 10.1136/bmj.320.7237.768]
-12. **Rockafellar, R. T., & Uryasev, S. (2000).** "Optimization of conditional value-at-risk." *Journal of Risk*, 2(3), 21–41. [DOI: 10.21314/JOR.2000.038]
+12. **Spearman, C. (1904).** "The proof and measurement of association between two things." *The American Journal of Psychology*, 15(1), 72–101. [DOI: 10.2307/1412159]
 13. **Solove, D. J., & Hartzog, W. (2014).** "The FTC and the new common law of privacy." *Columbia Law Review*, 114(3), 583–676.
 14. **Vaughan, D. (1996).** *The Challenger Launch Decision: Risky Technology, Culture, and Deviance at NASA.* University of Chicago Press. [ISBN: 978-0226851761]
 15. **Wheatley, S., Maillart, T., & Sornette, D. (2016).** "The extreme risk of personal data breaches and the erosion of privacy." *The European Physical Journal B*, 89(1), 1–12. [DOI: 10.1140/epjb/e2015-60754-4]

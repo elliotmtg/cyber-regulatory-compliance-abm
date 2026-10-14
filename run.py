@@ -36,7 +36,7 @@ def df_to_markdown(df):
     return "\n".join([header_line, separator_line] + data_lines)
 
 
-def generate_markdown_report(report_path, config, df_initial, trajectory_df, stage_dashboards, audit_df, alignment_score, mae, ledger):
+def generate_markdown_report(report_path, config, df_initial, trajectory_df, stage_dashboards, audit_df, alignment_score, mae, ledger, core_paper_df=None):
     """Generates an executive markdown report summarizing the entire simulation run."""
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(f"# Simulation Executive Report: {config['scenario'].upper()}\n\n")
@@ -46,8 +46,14 @@ def generate_markdown_report(report_path, config, df_initial, trajectory_df, sta
         f.write(f"- **Empirical Alignment Score:** **`{alignment_score:.1f}%`** (MAE: `{mae:.3f}` on a 1–5 scale)\n\n")
         f.write("---\n\n")
 
+        # 0. Core Research Paper Metrics
+        if core_paper_df is not None and not core_paper_df.empty:
+            f.write("## Table 1: Core Research Paper Metrics (Executive Overview)\n\n")
+            f.write("The primary empirical and behavioral indicators recommended for academic publication:\n\n")
+            f.write(df_to_markdown(core_paper_df) + "\n\n")
+
         # 1. Longitudinal Trajectory Matrix
-        f.write("## 1. Longitudinal Stage Trajectory Matrix\n\n")
+        f.write("## 2. Longitudinal Stage Trajectory Matrix\n\n")
         f.write("Evolution of key system and stakeholder metrics across the 5 lifecycle stages:\n\n")
         f.write(df_to_markdown(trajectory_df) + "\n\n")
 
@@ -402,6 +408,48 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
         audit_df = pd.DataFrame()
 
     # -----------------------------------------------------------------
+    # CORE ESSENTIAL 5 RESEARCH PAPER METRICS
+    # -----------------------------------------------------------------
+    breach_tick = None
+    remediation_tick = None
+    if "IncidentOccurred" in model_data.columns:
+        breached_rows = model_data[model_data["IncidentOccurred"] == 1]
+        if not breached_rows.empty:
+            breach_tick = breached_rows.index[0]
+            post_breach = model_data.loc[breach_tick:]
+            rem_rows = post_breach[post_breach["Producer_AvgThreat"] <= 2.0]
+            if not rem_rows.empty:
+                remediation_tick = rem_rows.index[0]
+                mttr_str = f"{remediation_tick - breach_tick} ticks (Resolved at step {remediation_tick})"
+            else:
+                mttr_str = "Active at simulation end (> horizon)"
+        else:
+            mttr_str = "No breach occurred"
+    else:
+        mttr_str = "N/A"
+
+    core_paper_rows = [
+        {"Core Paper Metric": "1. Equilibrium System Threat", "Simulated Value": f"{latest['AvgThreat']:.2f} / 5.0", "Benchmark Scale": "1 - 5 Scale", "Academic Interpretation": "Terminal ecosystem vulnerability level"},
+        {"Core Paper Metric": "2. Cyber Breach Event", "Simulated Value": f"Step {breach_tick}" if breach_tick is not None else "None", "Benchmark Scale": f"Scheduled at Step {incident_step}", "Academic Interpretation": "Catastrophic failure occurrence & timing"},
+        {"Core Paper Metric": "3. Mean Time to Remediate (MTTR)", "Simulated Value": mttr_str, "Benchmark Scale": "Discrete Steps (Ticks)", "Academic Interpretation": "Remediation latency to safe threat (<= 2.0)"},
+        {"Core Paper Metric": "4. Total Producer Financial Burden", "Simulated Value": f"${net_cost:,.2f}", "Benchmark Scale": "Direct monetary costs ($)", "Academic Interpretation": "Total penalty, response, & restitution burden"},
+        {"Core Paper Metric": "5. User Restitution Share", "Simulated Value": f"{restitution_pct:.1f}%", "Benchmark Scale": "Percentage of total burden", "Academic Interpretation": "Direct victim harm repair fraction"}
+    ]
+    if scenario != "random" and scenario in EMPIRICAL_PROFILES:
+        core_paper_rows.append({
+            "Core Paper Metric": "Empirical Model Fit Score",
+            "Simulated Value": f"{alignment_score:.1f}% (MAE: {mae:.3f})",
+            "Benchmark Scale": "19 Case Study Dimensions",
+            "Academic Interpretation": "Alignment with historical ground truth"
+        })
+    core_paper_df = pd.DataFrame(core_paper_rows)
+
+    print("\n" + "=" * 80)
+    print("--- 0. CORE RESEARCH PAPER METRICS (Executive Overview) ---")
+    print("=" * 80)
+    print(core_paper_df.to_string(index=False))
+
+    # -----------------------------------------------------------------
     # GENERATE MARKDOWN EXECUTIVE SUMMARY REPORT
     # -----------------------------------------------------------------
     report_path = os.path.join(output_dir, "summary_report.md")
@@ -414,9 +462,10 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
         audit_df=audit_df,
         alignment_score=alignment_score,
         mae=mae,
-        ledger=ledger
+        ledger=ledger,
+        core_paper_df=core_paper_df
     )
-    print(f"Executive Markdown Summary saved to: {report_path}\n")
+    print(f"\nExecutive Markdown Summary saved to: {report_path}\n")
 
 
 if __name__ == "__main__":
