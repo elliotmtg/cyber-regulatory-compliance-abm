@@ -290,29 +290,114 @@ class StakeholderAgent(Agent):
     # -----------------------------------------------------------------
     # STAGE 5: OUTCOMES (Systemic Equilibrium & Long-Term Legacy)
     # -----------------------------------------------------------------
+    def update_dynamic_outcomes(self):
+        """
+        Dynamically computes the 4 terminal outcome dimension scores (1-5 scale)
+        based on the agent's emergent simulation trajectory rather than static presets:
+          - Costs: Economic/financial burden (1 = severe loss, 5 = favorable/minimal cost)
+          - Transformations: Depth of structural reform / operational change (1 = static, 5 = major transformation)
+          - Remedies: Regulatory compliance / user redress / restitution fulfillment (1 = unresolved, 5 = full redress)
+          - Preservation: Retention of operational capacity and institutional viability (1 = compromised, 5 = intact)
+        """
+        if self.stakeholder_type == "producer":
+            # 1. Costs: 1 = severe financial burden, 5 = minimal/favorable cost
+            net_burden = -self.wealth_or_cost
+            if net_burden >= 50000:
+                self.out_costs = 1
+            elif net_burden >= 30000:
+                self.out_costs = 2
+            elif net_burden >= 15000:
+                self.out_costs = 3
+            elif net_burden >= 5000:
+                self.out_costs = 4
+            else:
+                self.out_costs = 5
+
+            # 2. Transformations: Threat reduction and capacity improvement from breach peak
+            threat_reduction = max(0, 5 - self.threat_level)
+            self.out_transformations = clamp(1 + threat_reduction)
+
+            # 3. Remedies: Consent order compliance and user restitution
+            remedy_score = 1
+            if self.rec_correcting >= 4:
+                remedy_score += 1
+            if self.threat_level <= 2:
+                remedy_score += 1
+            if self.compensation_paid > 0:
+                remedy_score += 1
+            if self.operational_capacity >= 4:
+                remedy_score += 1
+            self.out_remedies = clamp(remedy_score)
+
+            # 4. Preservation: Operational survival and stability
+            self.out_preservation = clamp(self.operational_capacity)
+
+        elif self.stakeholder_type == "regulator":
+            # 1. Costs: Regulatory cost recovery from fines collected
+            if self.wealth_or_cost >= 5000:
+                self.out_costs = 5
+            elif self.wealth_or_cost >= 2000:
+                self.out_costs = 4
+            elif self.wealth_or_cost > 0:
+                self.out_costs = 3
+            else:
+                self.out_costs = 2
+
+            # 2. Transformations: Institutional regulatory evolution
+            self.out_transformations = clamp(self.regulatory_pressure - (1 if self.operational_capacity <= 2 else 0))
+
+            # 3. Remedies: Stringency of corrective enforcement mandates imposed
+            self.out_remedies = clamp(self.rec_correcting)
+
+            # 4. Preservation: Retention of regulatory authority and capacity
+            self.out_preservation = clamp(self.operational_capacity)
+
+        elif self.stakeholder_type == "user":
+            # 1. Costs: User residual harm vs. restitution received
+            if self.compensation_received >= 1000:
+                self.out_costs = 4
+            elif self.compensation_received > 0:
+                self.out_costs = 3
+            elif self.threat_level <= 2:
+                self.out_costs = 2
+            else:
+                self.out_costs = 1
+
+            # 2. Transformations: User security hardening and alternative adoption
+            self.out_transformations = clamp(self.op_securing - (1 if self.threat_level >= 4 else 0))
+
+            # 3. Remedies: Redress achieved through litigation or vendor remediation
+            user_remedy = 1
+            if self.threat_level <= 2:
+                user_remedy += 2
+            if self.compensation_received > 0:
+                user_remedy += 2
+            self.out_remedies = clamp(user_remedy)
+
+            # 4. Preservation: Retention of client operations and user viability
+            self.out_preservation = clamp(self.operational_capacity)
+
     def step_outcomes(self):
         """
         Models long-term structural outcomes:
-        - Costs: Residual financial and operational burden.
-        - Transformations: Structural changes (new coalitions, leadership replacements, new laws).
-        - Remedies: Final settlement terms, consent decree fulfillment.
-        - Preservation: Retention of market position, customer trust, and regime durability.
+        - Producer completes residual security hardening and capacity stabilization.
+        - Regulators institutionalize post-enforcement oversight.
+        - Users adapt to post-incident security baselines.
+        - Dynamically computes terminal outcome dimension scores from emergent simulation history.
         """
         if self.stakeholder_type == "producer":
-            # High transformation reflects lasting organizational reform
-            if self.out_transformations >= 4:
+            if self.rec_correcting >= 3:
                 self.threat_level = clamp(self.threat_level - 1)
-
-            # Preservation stabilizes operational capacity
-            if self.out_preservation >= 4:
+            if self.rec_complying >= 4:
                 self.operational_capacity = clamp(self.operational_capacity + 1)
 
         elif self.stakeholder_type == "regulator":
-            # Strong remedies and transformations institutionalize regulatory vigilance
-            if self.out_transformations >= 4 or self.out_remedies >= 4:
+            if self.rec_correcting >= 4:
                 self.regulatory_pressure = clamp(self.regulatory_pressure + 1)
 
         elif self.stakeholder_type == "user":
-            # High preservation indicates users remain locked in; low preservation indicates churn
-            if self.out_remedies >= 4:
+            if self.rec_correcting >= 3:
                 self.threat_level = clamp(self.threat_level - 1)
+
+        # Update dynamic outcome scores based on actual emergent simulation state
+        self.update_dynamic_outcomes()

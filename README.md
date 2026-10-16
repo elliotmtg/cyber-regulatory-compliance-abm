@@ -61,7 +61,7 @@ Values are derived from empirical case analyses (`Cases & Units-Grid view (3).cs
   - `icrc_2022`: Targeted humanitarian data compromise in a complex international governance environment.
   - `random`: Fully randomized initializations for stochastic baseline and Monte Carlo parameter sweeps.
 - **Initial State Transparency ($T=0$):** Tabulates every agent's starting operational capacity, regulatory pressure, and threat level before execution.
-- **5-Stage Summary Analytics:** Descriptive metrics (`mean`, `std`, `Gini`) broken down across each lifecycle stage (`Operating`, `Precursors`, `Recovering`, `Outcomes`).
+- **5-Stage Summary Analytics:** Descriptive metrics (`mean`, `std`, `Producer-User Threat Gap`) broken down across each lifecycle stage (`Operating`, `Precursors`, `Recovering`, `Outcomes`).
 - **Disaggregated Stakeholder Analytics:** Tracks individual sub-group averages for Regulators, Producers, and Users separately to prevent aggregation bias.
 - **Human-Auditable Empirical Benchmarking:** Outputs a side-by-side comparison table between simulated terminal outcomes and the empirical case study benchmark.
 - **Financial & Enforcement Tracking:** Quantifies total fines levied, damages/compensation paid, and net producer costs.
@@ -162,7 +162,7 @@ Specify any preset scenario using the `--scenario` flag:
 ```
 
 ### 3. Monte Carlo Parameter Sweeps (Batch Execution)
-Run stochastic Monte Carlo sweeps across $N$ iterations to evaluate emergent stability distributions, resilience velocity (MTTR), actuarial tail risk (VaR & CVaR), and precursor risk sensitivities:
+Run stochastic Monte Carlo sweeps across $N$ iterations to evaluate emergent stability distributions, resilience velocity (MTTR), economic financial costs, victim restitution shares, and precursor risk sensitivities:
 
 **macOS / Linux:**
 ```bash
@@ -190,13 +190,13 @@ Run stochastic Monte Carlo sweeps across $N$ iterations to evaluate emergent sta
 ## Output Structure
 
 ### Single Scenario Run Outputs:
-- **`outputs/summary_report.md`**: Human-auditable executive Markdown summary including the Longitudinal Trajectory Matrix, stage behavioral dashboards, financial ledgers, and empirical validation audit scorecard.
+- **`outputs/summary_report.md`**: Human-auditable executive Markdown summary including the Core Research Paper Metrics (Table 1), Longitudinal Trajectory Matrix, stage behavioral dashboards, financial ledgers, and empirical validation audit scorecard.
 - **`outputs/config.json`**: Exact simulation parameters, scenario name, seed, and timestamp.
-- **`outputs/model_output.csv`**: Time-series macro metrics, Gini coefficients, and disaggregated stakeholder averages for every tick.
+- **`outputs/model_output.csv`**: Time-series macro metrics, threat disparity gaps, and disaggregated stakeholder averages for every tick.
 - **`outputs/agent_output.csv`**: Step-by-step state records for each individual agent.
 - **`logs/simulation.log`**: Detailed event log of compliance enforcement, fines levied, and compensation paid.
 
 ### Monte Carlo Sweep Outputs (`outputs/monte_carlo/`):
-- **`outputs/monte_carlo/monte_carlo_report.md`**: Executive summary report containing macro equilibrium distributions, MTTR recovery dynamics, actuarial VaR/CVaR tables, and Spearman sensitivity rankings.
-- **`outputs/monte_carlo/summary_statistics.csv`**: Structured CSV containing macro distribution percentiles (IQR, median, min, max), recovery metrics, and financial risk limits.
+- **`outputs/monte_carlo/monte_carlo_report.md`**: Publication-ready research summary report containing the 5 core research paper metrics, stakeholder equilibria, MTTR recovery dynamics, economic cost breakdowns, and Spearman sensitivity rankings.
+- **`outputs/monte_carlo/summary_statistics.csv`**: Structured CSV containing publication-ready core paper metrics, stakeholder equilibria, recovery velocity metrics, and economic cost distributions.
 - **`outputs/monte_carlo/runs.csv`**: Complete record of all $M$ simulated sample paths for downstream statistical analysis.

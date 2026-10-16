@@ -2,8 +2,8 @@
 Monte Carlo Parameter Sweeps for Cybersecurity Regulatory Compliance ABM
 ========================================================================
 Executes stochastic parameter sweeps using randomized scenario initializations
-to quantify emergent systemic stability, recovery dynamics, actuarial financial
-tail risk (VaR & CVaR), and precursor sensitivity drivers.
+to quantify emergent systemic stability, recovery dynamics, economic financial
+costs, victim restitution shares, and precursor sensitivity drivers.
 
 Outputs:
   - outputs/monte_carlo/runs.csv (Individual run sample paths)
@@ -111,12 +111,12 @@ def run_monte_carlo(runs=100, steps=30, incident_step=10, base_seed=42, output_d
         term_threat = model.get_average_threat()
         term_opcap = model.get_average_op_cap()
         term_regpress = model.get_average_reg_press()
-        term_gini = model.calculate_gini([a.threat_level for a in model.schedule.agents])
 
         term_prod_threat = model.get_group_avg("producer", "threat_level")
         term_prod_opcap = model.get_group_avg("producer", "operational_capacity")
         term_user_threat = model.get_group_avg("user", "threat_level")
         term_reg_regpress = model.get_group_avg("regulator", "regulatory_pressure")
+        term_threat_gap = term_prod_threat - term_user_threat
 
         fines_paid = sum(a.fines_paid for a in model.schedule.agents if a.stakeholder_type == "producer")
         comp_paid = sum(a.compensation_paid for a in model.schedule.agents if a.stakeholder_type == "producer")
@@ -144,7 +144,7 @@ def run_monte_carlo(runs=100, steps=30, incident_step=10, base_seed=42, output_d
             "Terminal_AvgThreat": term_threat,
             "Terminal_AvgOpCap": term_opcap,
             "Terminal_AvgRegPress": term_regpress,
-            "Terminal_ThreatGini": term_gini,
+            "Terminal_ThreatGap": term_threat_gap,
             # Terminal Stakeholder Averages
             "Terminal_Producer_Threat": term_prod_threat,
             "Terminal_Producer_OpCap": term_prod_opcap,

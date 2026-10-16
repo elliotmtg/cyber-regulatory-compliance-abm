@@ -157,10 +157,11 @@ Users seek class-action damages:
 $$\text{Damages}_{u} = \text{ThreatLevel}_p \times \$150$$
 
 #### E. Outcomes Submodel: Systemic Legacy & Equilibrium
-In Stage 5, terminal equilibrium is established:
-- High producer `out_transformations` ($\ge 4$) locks in permanent technical remediation ($\text{Threat} \leftarrow \max(1, \text{Threat} - 1)$).
-- High producer `out_preservation` ($\ge 4$) stabilizes operational capacity ($\text{OpCap} \leftarrow \min(5, \text{OpCap} + 1)$).
-- High regulatory `out_remedies` or `out_transformations` ($\ge 4$) institutionalizes permanent oversight vigilance.
+In Stage 5, terminal structural legacy and governance equilibrium are dynamically established:
+- **Producer Hardening & Stabilization:** Active correcting ($\ge 3$) reduces residual threat ($\text{Threat} \leftarrow \max(1, \text{Threat} - 1)$), while compliance adherence ($\ge 4$) stabilizes operational capacity ($\text{OpCap} \leftarrow \min(5, \text{OpCap} + 1)$).
+- **Regulatory Institutionalization:** Aggressive enforcement postures ($\ge 4$) institutionalize persistent regulatory vigilance.
+- **User Stabilization:** Corrective hygiene actions ($\ge 3$) mitigate residual client exposure.
+- **Dynamic Outcome Scoring:** The 4 qualitative outcome dimensions (Costs, Transformations, Remedies, Preservation) are computed endogenously for each stakeholder from simulation trajectory metrics (net financial burden, threat reduction, restitution fulfillment, and operational capacity retention) and benchmarked against empirical case ground truth.
 
 #### F. Core Statistical Metrics for Research Publication
 Across $M$ stochastic Monte Carlo runs (or longitudinal scenario runs), systemic outcomes are evaluated using five primary, peer-review-standard indicators:

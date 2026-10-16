@@ -152,7 +152,6 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
     t0_macro_threat = df_initial["ThreatLevel"].mean()
     t0_macro_opcap = df_initial["OpCapacity"].mean()
     t0_macro_regpress = df_initial["RegPressure"].mean()
-    t0_gini = model.calculate_gini(df_initial["ThreatLevel"].tolist())
 
     t0_reg_op = df_initial[df_initial["Type"] == "regulator"]["OpCapacity"].mean()
     t0_reg_rp = df_initial[df_initial["Type"] == "regulator"]["RegPressure"].mean()
@@ -194,11 +193,12 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
         else:
             stage_means[stg] = pd.Series(dtype=float)
 
+    t0_threat_gap = t0_prod_th - t0_user_th
     trajectory_rows = [
         {"Metric / Stakeholder": "Macro Avg Threat", "Context (T0)": round(t0_macro_threat, 2)},
         {"Metric / Stakeholder": "Macro Avg OpCapacity", "Context (T0)": round(t0_macro_opcap, 2)},
         {"Metric / Stakeholder": "Macro Avg RegPressure", "Context (T0)": round(t0_macro_regpress, 2)},
-        {"Metric / Stakeholder": "Threat Inequality (Gini)", "Context (T0)": round(t0_gini, 3)},
+        {"Metric / Stakeholder": "Producer-User Threat Gap", "Context (T0)": round(t0_threat_gap, 2)},
         {"Metric / Stakeholder": "Regulator OpCapacity", "Context (T0)": round(t0_reg_op, 2)},
         {"Metric / Stakeholder": "Regulator RegPressure", "Context (T0)": round(t0_reg_rp, 2)},
         {"Metric / Stakeholder": "Producer Threat Level", "Context (T0)": round(t0_prod_th, 2)},
@@ -210,7 +210,7 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
     ]
 
     metric_key_map = [
-        "AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGini",
+        "AvgThreat", "AvgOperationalCapacity", "AvgRegulatoryPressure", "ThreatGap_Producer_User",
         "Regulator_AvgOpCap", "Regulator_AvgRegPress",
         "Producer_AvgThreat", "Producer_AvgOpCap", "Producer_AvgRegPress",
         "User_AvgThreat", "User_AvgOpCap", "User_AvgRegPress"
@@ -439,7 +439,7 @@ def run_simulation(scenario="equifax_2017", steps=30, incident_step=10, seed=42,
         core_paper_rows.append({
             "Core Paper Metric": "Empirical Model Fit Score",
             "Simulated Value": f"{alignment_score:.1f}% (MAE: {mae:.3f})",
-            "Benchmark Scale": "19 Case Study Dimensions",
+            "Benchmark Scale": "12 Case Study Dimensions",
             "Academic Interpretation": "Alignment with historical ground truth"
         })
     core_paper_df = pd.DataFrame(core_paper_rows)

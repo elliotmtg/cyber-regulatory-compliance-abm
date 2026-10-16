@@ -205,7 +205,7 @@ class CyberComplianceModel(Model):
                 "AvgThreat": lambda m: m.get_average_threat(),
                 "AvgOperationalCapacity": lambda m: m.get_average_op_cap(),
                 "AvgRegulatoryPressure": lambda m: m.get_average_reg_press(),
-                "ThreatGini": lambda m: m.calculate_gini([a.threat_level for a in m.schedule.agents]),
+                "ThreatGap_Producer_User": lambda m: m.get_threat_gap(),
 
                 # Disaggregated Stakeholder Averages
                 "Regulator_AvgOpCap": lambda m: m.get_group_avg("regulator", "operational_capacity"),
@@ -428,13 +428,8 @@ class CyberComplianceModel(Model):
             return 0.0
         return sum(a.regulatory_pressure for a in agents) / len(agents)
 
-    def calculate_gini(self, values):
-        """Calculates Gini coefficient measuring inequality in threat distribution."""
-        if not values:
-            return 0.0
-        sorted_v = sorted(values)
-        n = len(sorted_v)
-        if n == 0 or sum(sorted_v) == 0:
-            return 0.0
-        cumulative = sum((i + 1) * v for i, v in enumerate(sorted_v))
-        return (2 * cumulative) / (n * sum(sorted_v)) - (n + 1) / n
+    def get_threat_gap(self):
+        """Calculates the vulnerability disparity between software producers and users."""
+        prod_threat = self.get_group_avg("producer", "threat_level")
+        user_threat = self.get_group_avg("user", "threat_level")
+        return prod_threat - user_threat
